@@ -1,0 +1,976 @@
+---
+title: "The Meg Programming Language Specification"
+author: "Elizeu S. Souza"
+format:
+  pdf:
+    pdf-engine: xelatex
+    mainfont: "Times New Roman"
+    fontsize: 12pt
+---
+
+Last modification: 19.11.2026
+
+# Lexical Elements
+
+## Identifiers
+
+###### Syntax {-}
+
+| _identifier_:
+|         ID_Start
+|         _identifier_ ID_Continue
+
+An identifier is a sequence of character, that
+may be used to identify functions, variables,
+units, constants and types, and some other token
+kind.
+
+## Keywords
+
+The language have some reserved identifiers
+reserved as keywords, as follows
+
+|            |         |         |
+|------------|---------|---------|
+| `and`      | `defer` | `let`   |
+| `break`    | `else`  | `of`    |
+| `case`     | `fall`  | `or`    |
+| `const`    | `for`   | `use`   |
+| `continue` | `goto`  |         |
+| `def`      | `if`    |         |
+
+Kewords can not be used as an identifier token,
+therefore can not be used to identify
+declarations.
+
+Currently, the keyword `let` is not used, but it
+remains reserved.
+
+## Integer Constants
+
+**Syntax**
+
+| _integer_:
+|         _decmal-sequence_
+|         `0b` _binary-sequence_
+|         `0o` _octal-sequence_
+|         `0x` _hexadecimal-sequence_
+
+| _unsigned-integer_:
+|         integer `u`
+
+| _decimal-sequence_:
+|         _decimal-digit_
+|         _decimal-sequence_ `_`~opt~ _decimal-digit_
+
+| _binary-sequence_:
+|         _binary-digit_
+|         _binary-sequence_ `_`_opt_~ _binary-digit_
+
+| _octal-sequence_:
+|         _octal-digit_
+|         _octal-sequence_ `_`~opt~ _octal-digit_
+
+| _hexadecimal-sequence_:
+|         _hexadecimal-digit_
+|         _hexadecimal-sequence_ `_`~opt~ _hexadecimal-digit_
+
+| _decimal-digit_: one of
+|         `0 1 2 3 4 5 6 7 8 9`
+
+| _binary-digit_: one of
+|         `0 1`
+
+| _octal-digit_: one of
+|         `0 1 2 3 4 5 6 7`
+
+| _hexadeciml-digit: one of
+|         `0 1 2 3 4 5 6 7 8 9`
+|         `a b c d e f`
+
+> Note that hexadecimal digits must be written in
+> lowercase.
+
+**Semantics**
+
+An integer constant represents a literal integer
+value that is used in expressions.
+
+Integer constants with the optional suffix `u`
+are unsigned integer constants, which is a
+different token and may have in different
+semantics in expressions that use it.
+
+## Float Constant
+
+**Syntax**
+
+| _floating_:
+|         _decimal-sequence_ `.` _decimal-sequence_ _exponent-part_~opt~
+|         `0x` _hexadecimal-sequence_ `.` _decimal-sequence_ _exponent-part_~opt~
+
+| _decimal-exponent-part_:
+|         `E` sign~opt~ _decimal-sequence_
+
+| sign: one of
+|         `+ -`
+
+> Note that the exponent part uses `E`, in
+> uppercase.
+
+**Semantics**
+
+A floating constant represents a literal floating
+literal that is used in expressions.
+
+Hexadecimal floating constants expoenent part is
+always based on base 2. Per example, `0x1.8E3` is
+equivalent to $1.5 \times 2^{3}$.
+
+## Rune Constant
+
+**Syntax**
+
+| _rune_:
+|         ' _utf8-char_ '
+|         ' _scaped-char_ '
+
+| _uft8-char_:
+|         Any character encoded as UTF-8.
+
+| _scaped-char_:
+|         _simple-scape-sequence_
+|         _hexadecimal-scape-sequence_
+
+| _simple-scape-sequence_: one of
+|         `\' \" \\ \a \b \f \n \r \t \v`
+
+| _hexadecimal-scape-sequence_:
+|         `\u` `{` _hexadecimal-digit_ _hexadecimal-digit_ _hexadecimal-digit_ _hexadecimal-digit_ `}`
+
+An hexadecimal scape sequence always consists of
+four hexadecimal digits.
+
+**Semantics**
+
+A rune constant represents a character. The
+result is an UTF-32 encoded character of the
+UTF-8 character, scape or hexadecimal scape that
+is enclosed in quotes, as in 'r'.
+
+A _simple scape sequence_ are character codes
+that results in a UTF-32 chracter. The character
+that each one returns is
+
+- `\'` results in a U+0027 character (`'`);
+- `\"` results in a U+0022 character (`"`);
+- `\\` results in a U+005c character (`\`);
+- `\a` results in a U+0007 character;
+- `\b` results in a U+0008 character;
+- `\f` results in a U+000c character;
+- `\n` results in a U+000a character;
+- `\r` results in a U+000d character;
+- `\t` results in a U+0009 character; and
+- `\v` results in a U+000b character.
+
+Hexadecimal scape sequences result in the
+character equivalent to the code point of the
+unicode character enclosed in braces. Per
+example, `\u{20ac}`, will result in the Euro
+symbol character (`€`).
+
+## String Constant
+
+**Syntax**
+
+| _string_:
+|         `"` _char-sequence_~opt~ `"`
+
+| _char-sequence_:
+|         _char_
+|         _char-sequence_ _char_
+
+| _char_:
+|         _utf8-char_
+|         _scaped-char_
+
+**Semantics**
+
+A string is a sequence of zero or more UTF-8
+encoded characters enclosed in double-quotes, as
+in "abc".
+
+Hexadecimal scape sequences are always converted
+to UTF-8 characters before being inckuded in the
+string.
+
+## Puntuators and Operators
+
+**Syntax**
+
+| _punctuator_:
+|         `+   &   +=  &=  ==  {   }`
+|         `-   ^   -=  ^=  !=  [   ]`
+|         `*   |   +=  |=  >=  (   )`
+|         `/   !   /=  >   <=  ++  ,`
+|         `%   %=  =   <   =>  --  :`
+|         `<<  >>  <<= >>= _   .   ;`
+|         `$`
+
+> Note that the `@` character indicates a pragma
+> directive that is still undefined. It remains
+> remains.
+
+**Semantics**
+
+From the list, the punctuators are
+
+|         `{ } [ ] ( ) , : ; $`
+
+serves strictly as punctuators, which serves only
+to separate and structure the language grammar
+and have no semantic effect. The others are
+operators, which may indicate an expression or
+statement.
+
+A separator consists of a comma (`,`). However,
+a new-line charater is a comma if the preceding
+token is
+
+- one of `} ] ) _ ++ -- .`;
+- an _identifier_;
+- an _integer_;
+- a _floating_;
+- a _rune_;
+- a _string_; or
+- a `break` or `continue` keyword.
+
+# Language
+
+The Meg Programming Language sintax consists of
+four basic elements: declaration, expression,
+statement and type. Also, there are two kinds of
+list: scope, chain and block, for declarations,
+expressions and statements respectivelly.
+
+## Types
+
+**Syntax**
+
+| _type_:
+|         _expression-type_
+|         _pointer-type_
+|         _functional-type_
+|         _structural-type_
+|         _array-type_
+
+**Semantics**
+
+Results in a type, which is used to explicit
+declare a type of a declaration.
+
+### Type Categories
+
+A type category is a set of properties that a
+type have. All the properties that the language
+have are the following ones
+
+#### Integer
+
+The integer category has one parameter, it size
+of memory in byte, the limit is 8 bytes. One bit
+must be the integer signal, which says if the
+integer is positive or negative.
+
+#### Unsigned Integer
+
+Unsigned integer is an integet without the signal
+bit.
+
+#### Floating
+
+Is an IEEE 754 16, 32 or 64-bit floating point
+number.
+
+#### Boolean
+
+Have only two possible values: true and false. It
+always have only 1 byte of memory size, the less
+significant bit must be 1 for true and 0 for
+false, the other bits must be 0.
+
+#### Pointer
+
+The pointer category has only one parameter, the
+type of the object for which it points. A pointer
+stores the memory address of the object for which
+it points. A an object of a type of this category
+may not have its memory address taken. Any type
+of this category have a fixed size of memory,
+which is known and defined by the compiler when
+generating the object.
+
+#### Functional
+
+This category has two parameters: the function
+parameter list scope and the functional result
+type, that must be analysed in the same scope
+that the parameters. A functional stores the
+memory address of any compatible executable code
+data.
+
+The fuctional parameters are objects initialised
+before the executable data being actually
+executed. The functional result type is the type
+of the objects that the executable data can
+compute and result in.
+
+Any type of this category have a fixed size of
+memory, which is known and defined by the
+compiler when generating the object.
+
+A type of this category may not be the type of
+anyone of the parameters or be the functional
+result type.
+
+#### Structural
+
+Stuctural is a set of zero or more object that
+constitutes another object. It has one parameter,
+the structural field list scope.
+
+The structural field list scope is a list of
+objects, that must have their value defined to
+the object be considered initialised. The size
+of a structural type is defined based on the size
+of the fields and their alignment. The order of
+the fields must not be changed during the object
+generation.
+
+A type of this category may not be the type of
+anyone of the parameters.
+
+#### Array
+
+This category has two parameters: a size
+expression, which contains its size independently
+if the expression is variable or not; the objects
+type. Let the size expression be _n_ and the
+array type be _t_.
+
+An array is a contiguos sequence of _n_ of type
+_t_. The size of the array is $n \times size
+of t$, if the result of _n_ is variable and
+unknown at compile-time the array size is
+undeterminated and an object with this type is
+not allowed.
+
+A type of this category may not contain itself as
+the second parameter.
+
+#### Unit
+
+This category has no parameters, it stores the
+memory address of an internal structure of the
+compiler that contains metadata of an unit. The
+address of an object of a type of this category
+may not be taken.
+
+#### Type
+
+This category has no parameters, it stores the
+memory address of an internal structure of the
+compiler that contains metadata of a type. The
+address of an object of a type of this category
+may not be taken and the type for which it points
+may not be of this category.
+
+## Expression Type
+
+**Syntax**
+
+| _expression-type_:
+|         _prefix-expression_
+
+The expression must be of category type.
+
+**Semantic**
+
+The resultant type will be the result of the
+expression.
+
+## Pointer Type
+
+**Syntax**
+
+| _pointer-type_:
+|         `*` _type_~opt~
+
+**Semantics**
+
+Results in type of the category pointer where,
+the pointee type is the type after `*`. When the
+type is omitted, the compiler should infer.
+
+Example
+
+```Meg
+p2: *, \\ error: expected type.
+p2: * = &obj \\ ok: p2 : *i32.
+p3: *i32 \\ ok: uninitiaised pointer of type i32.
+```
+
+## Functional Type
+
+**Syntax**
+
+| _functional-type_:
+|         `(` _object-declarator-list_~opt~ `)` _type_~opt~
+
+**Semantics**
+
+Results in a type of the category functional,
+where the functional parameters are the objects
+in thelist enclosed in parentheses and the result
+type is the type after the `)`.
+
+When the functional result type is omitted, the
+compiler should infer.
+
+## Structural Type
+
+**Syntax**
+
+| _structural-type_:
+|         `{` _object-declarator-list_~opt~ `}`
+
+**Semantics**
+
+Results in a type of the category structural,
+where the fields are the objects declared in the
+list enclosed in braces.
+
+## Array Type
+
+**Syntax**
+
+| _array-type_:
+|         `[` _expression_ `]` _type_~opt~
+
+**Semantics**
+
+Results in a type of the array, where the size
+expression is the one eclosed in brackets and
+the array elements type is the one after `]`.
+
+If the array elements type is omitted, the
+compiler should infer.
+
+## Declarations
+
+**Syntax**
+
+| _declaration_:
+|         _function-declarator_
+|         _object-declarator_
+|         `use` _unit-declarator_
+|         `use` `{` _unit-declarator-list_ `}`
+|         `const` _const-declarator_
+|         `const` `{` _const-declarator-list_ `}`
+|         `def` _type-declarator_
+|         `def` `{` _type-declarator-list_ `}`
+
+| _visibility-identifier_:
+|         `$`~opt~ _identifier_
+
+| _declaration-list_:
+|         _declaration_
+|         _declaration_ `,` _declaration-list_~opt~
+
+A declaration is a declarator or a list of
+declarators of the same kind.
+
+Declarators may be public to another units if the
+token `$` is present before its identfier;
+Otherwise it is private and its type is
+anonymous.
+
+### Functions
+
+**Syntax**
+
+| _function-declarator_:
+|         _visibility-identifier_ `(` _object-declarator-list_~opt~ `)` type
+|         _visibility-identifier_ `(` _object-declarator-list_~opt~ `)` type~opt~ _function-body_
+
+| _function-body_:
+|         _statement-block_
+
+From the syntax, the first alternative is a
+declaration syntax; the second is the function
+definition syntax.
+
+**Semantics**
+
+A function is, in practice, a functional object
+for a functional expression. This function can be
+called and its executable data initialised and
+executed. A function must have its own scope, in
+where the parameters will be declared and the
+result type and statements will be analysed. A
+function must have a type of category functional,
+in where the parameters are the object enclosed
+in parentheses and the result type is the one
+after the parentheses.
+
+A function declaration declares a function that
+must be provided externally at link-time. The
+linker should guaratee that two or more functions
+don't refers to the same executable data.
+
+A function definition defines a function directly
+in the current unit. It must have a statement
+block that will be the function executable
+data, which is executed every time that the
+function is called. The type may be omitted and
+the compiler will infer the function result type.
+
+As a special behaviour, if the first parameter of
+a function is of a type or is a pointer to a type
+defined same unit that the function, then this
+function is a method of that type.
+
+Example
+
+```Meg
+def Age: i32
+
+\ As the first parameter is of
+  type Age, which is defined
+  here, get is a method for
+  Age. \
+$ get(a: *Age) {
+   => i32(*a)
+}
+```
+
+### Objects
+
+**Syntax**
+
+| _object-declarator_:
+|         _visibility-identifier_ `:` _type_ _initialiser_~opt~
+|         _visibility-identifier_ `:` _initialiser_
+
+| _initialiser_:
+|         `=` _expression_
+
+**Semnatics**
+
+An object represents a memory region of a
+determinated size. An object may be of any type
+and have an initialiser that creates the object
+with valid value.
+
+Objects with initialiser may have its type
+omitted, the compiler then should infer the
+object type.
+
+When the object has no initialiser, the type
+initialiser value will be accepted as the initial
+or parcially initial value of the object.
+
+### Units
+
+**Syntax**
+
+| _unit-declarator_:
+|         _visibility-identifier_ _string_ _subunits_~opt~
+|         _identifier_ _identifier_~opt~ _subunits_~opt~
+
+| _subunits_:
+|         `{` _unit-declarator-list `}`
+
+| _unit-declarator-list_:
+|         _unit-declarator_
+|         _unit-declarator_ `,` _unit-declarator-list_
+
+From the syntax, the first alternative is the
+unit definition syntax; the second is the unit
+declaration syntax.
+
+**Semantics**
+
+An unit definition specifies a path to a source
+file that will be included in the code base. This
+source file must always be compiled before the
+units that depend on it. The same source file may
+not be redefined as another unit in the base.
+
+An unit declaration declares an existing unit
+and, if dependent units do use it (as using dot
+operator like `unit.func()`), it will be marked
+as dependency of the current unit. The unit will
+be declared with the second identifier, if any,
+otherwise, its identifier will be the first.
+
+Both definition and declaration may have subunit
+declarations. Per example, let the unit A have
+the subunits B and C, you can declare B and A in
+the current unit. An unit that is not used and
+have no subunits declared must not be impored or
+the compilation will fail. Every declaration that
+is said to be a subunit of an unit X must be
+declared in X.
+
+Example
+
+```Meg
+use {
+   file "file.meg" \\ Defining file.
+   supreme { \\ Using the sub-units of supreme. 
+      tool \\ Declaring external unit.
+      longToolName lngTool \\ External with alias
+   }
+}
+```
+
+### Constants
+
+**Syntax**
+
+| _const-declarator_:
+|         _visibility-identifier_ _initialiser_
+
+**Semantics**
+
+A constant is an object where the value is not
+mutable and value is known at compile-time. The
+value of the initialiser expression will be the
+constant value.
+
+The compiler must infer the constant type using
+the initialiser expression.
+
+It is expected that constants live in
+protected/read-only memory regions, for safety.
+
+## Expressions
+
+**Syntax**
+
+| _expression_:
+|         _primary-expression_
+|         _prefix-expression_
+|         _postfix-expression_
+|         _multiplicative-expression_
+|         _additive-expression_
+|         _additive-expression_
+|         _shift-expression_
+|         _relational-expression_
+|         _equality-expression_
+|         _logical-and-expression_
+|         _logical-or-expression_
+|         _key-value-expression_
+
+| _expression-list_:
+|         _expression_
+|         _expression_ `,` _expression-list_~opt~
+
+An expression is an organisation of operators and
+operands that results in the computation of a
+value or designates a declaration. Expressions
+always have a type and result in value of it.
+
+### Primary Expressions
+
+**Syntax**
+
+| _primary-expression_:
+|         _identifier-expression_
+|         _literal-expression_
+|         _paren-expression_
+|         _structure-expression_
+|         _array-expression_
+
+#### Identifier
+
+**Syntax**
+
+| _identifier-expression_:
+|         _identifier_
+
+**Semantics**
+
+It must designate a declaration. If it designates
+an object or constant, the result is object or
+constant value; if it designates a function, the
+result is the functional, unit or type data
+address, respectively.
+
+#### Literal Expressions
+
+**Syntax**
+
+| _literal-expression_:
+|         _integer_
+|         _unsigned-integer_
+|         _floating_
+|         _rune_
+|         _string_
+
+From the syntax,the alternatives are integer,
+unsigned integer, floating, rune and string
+constant literal syntax, respectively.
+
+**Semantics**
+
+The token will be parsed and the value will be
+the result of the expression.
+
+The expression result is of type:
+
+- `i32` for integer literals;
+- `u32` for unsigned integer literals;
+- `f32` for floating literals;
+- `rune` for rune literals; and
+- `str` for string literals.
+
+#### Parenthesised Expression
+
+**Syntax**
+
+| _paren-expression_:
+|         `(` _expression_ `)`
+
+**Semantics**
+
+Results in the result of the expression eclosed
+in parentheses.
+
+#### Structure Expression
+
+**Syntax**
+
+| _structure-expression_:
+|         `{` _object-declarator-list_~opt~ `}`
+
+**Semantics**
+
+Results in a structure, where the fields are the
+declarators eclosed in braces, if any.
+
+If the declarator has initialiser, the
+corresponding field will have a value; otherwise,
+the field will be uninitialised.
+
+#### Array Expression
+
+**Syntax**
+
+| _array-expression_:
+|         `[` _expression-list_ `]`
+
+**Semantics**
+
+Results in an array, where the type is the type
+of the first expression, the others musth have
+the same type.
+
+If the expressions in the list are key-value
+expressions, for each
+
+- the key must be a constant expression of
+  category integer or unsigned integer and may
+  not be the same value of any other key of the
+  expressions in the list. A key designates a
+  position in the resultant array;
+- the value will be the value of the position
+  that the key designates in the resultant array;
+- the resultant array size will be the biggest
+  key of the expressions plus one.
+otherwise
+- each expression result will be the value of the
+  position in which it appears in the list in the
+  array;
+- the count of expressions in the list is the size
+  of the array.
+
+### Postfix Expressions
+
+**Syntax**
+
+| _postfix-expressions_:
+|         _primary-expression_
+|         _initialiser-expression_
+|         _bracket-expression_
+|         _structural-expression_
+|         _dot-expression_
+
+#### Initialiser Expression
+
+**Syntax**
+
+| _initialiser-expression_:
+|         _postfix-expression_ `(` _expression-list_ `)`
+
+**Semantics**
+
+If the expression before the parentheses is of a
+type of the category functional, this expression
+is a function initialiser (or call); otherwise
+the expression must be of type `type` and the
+expression list must have only one expression.
+
+##### Function Initialiser
+
+The expressions in the list enclosed in
+parentheses are arguments. The count of arguments
+must be the count of parameters required by the
+functional and the type of each argument must be
+the same of the corresponding parameter.
+
+The executable data that the functional
+represents will be initialised, that is, the
+arguments will be passed, and then executed.
+
+The execution result ia the result of this
+expression. This expression always has the same
+type of the functional result.
+
+##### Type Cast
+
+The result will be the result of the operand
+casted to the type resulted of the left
+expression.
+
+The operand may be casted to the specified type
+if
+
+- the specified type and the operand are of
+  integer, unsigned integer or floating category;
+- the specified type is of integer or unsigned
+  integer category and the operand type of
+  boolean;
+- the specified type is of pointer category and
+  the operand is of integer category or
+  vice-versa;
+- both specified type and operand type is of
+  category pointer, where casting P1 to P2
+  where P2 pointee type have size and aligment
+  less or equal to P1 pointee type ones and the
+  object pointed by the operand is guaranteed to
+  have no protected data. Casting between pointer
+  types always results in a pointer to
+  uninitialised memory and the operand is moved;
+
+otherwise, cast is not allowed.
+
+#### Bracket Expression
+
+**Syntax**
+
+| _bracket-expression_:
+|         _postfix-expression_ `[` _expression-list_ `]`
+
+**Semantics**
+
+If the left expression type is of array category
+or a pointer to an arrat the expression is an
+array subscript; if its type is `type`, the
+expression is an array initialisation.
+
+##### Array Subscript
+
+The expressions in the list enclosed in brackets
+are indexes, each one must have a type of the
+unsigned integer category.
+
+The count of expressions in the list must be the
+count of dimensions of the array. So if the left
+expression type is `[3][3][3]i32` the array is a
+tridimensional array and the list must have 3 or
+less indexes. The fist index accesses a position
+of the array that is the first subscription, the
+second accesses a position of the array resulted
+of the first subscription and so on. Before each
+subscription, if the previous one resulted in a
+pointer to an array it will be dereferenced.
+
+##### Array Initialisation
+
+The type resulted of the left expression must be
+of array category, this type will be the same of
+the result.
+
+For each expression in the enclosed in brackets,
+it must be a key-value expression where
+
+- the key must be a constant expression of
+  category unsigned integer that may not be the
+  same value of any other key of the expressions
+  in the list. A key designates a position in
+  the resultant array;
+- the value will be the value of the position
+  tdesignated by the key in the resultant array;
+- the resultant array size will be the biggest
+  key of the expressions plus one.
+
+#### Structural Expression
+
+**Syntax**
+
+| _structural-expression_:
+|         _postfix-expresion_ `{` _expression-list_ `}`
+
+**Semantics**
+
+The first expression must have the type `type`
+and must result in a type of structure category.
+This expression will result in the type resulted
+by the fiest expression.
+
+For each expression in the list enclosed in
+braces, it must be a key-value expression where
+
+- the key is an identifier that designates a
+  field of the resultnt structures. A key may not
+  deisgnate the same field that other key; and
+- the value has the same type of field that the
+  respective key designates.
+
+fields that is not designated and does not have a
+value in the epressions is uninitialised in the
+resultant structure unless its type provides an
+initialiser.
+
+#### Dot Expression
+
+**Syntax**
+
+| _dot-expression_:
+|         _postfix-expression_ `.` _identifier_
+
+**Semantics**
+
+The expression on the left side of the dot must
+have type of category unit or structure category,
+it also may be a pointer to a type of one of
+them.
+
+The identifier must be the name of any valid
+declaration inside the scope of the left
+expression that will be the result of the
+expression, such declaration may not be an unit.
+
+### Prefix Expressions
+
+**Syntax**
+
+| _prefix-expression_:
+|         _postfix-expression_
+|         _op_ _postfix-expression_
+
+where _op_ is one of
+
+| `! + - & *`
