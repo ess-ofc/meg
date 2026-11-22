@@ -15,7 +15,7 @@ format:
     fontsize: 12pt
 ---
 
-Last modification: 21.11.2026
+Last modification: 22.11.2026
 
 # Lexical Elements
 
@@ -1213,3 +1213,296 @@ value. The value must have the same type that
 the corresponding key (that is, the same type
 that the designated field or the same type of the
 resulting array).
+
+## Statements
+
+**Syntax**
+
+| _statement_:
+|         _result-statement_
+|         _if-statement_
+|         _for-statement_
+|         _labeled-statement_
+|         _break-statement_
+|         _continue-statement_
+|         _defer-statement_
+|         _goto-statement_
+|         _assignment-statement_
+|         _postifx-statement_
+|         _declaration-statement_
+|         _expression-statement_
+
+| _statement-list_:
+|         _statement_
+|         _statement_ `,` _statement-list_~opt~
+
+| _init-statement_:
+|         _assignment-statement_
+|         _postifx-statement_
+|         _declaration-statement_
+
+### Result Statement
+
+**Syntax**
+
+| _result-statement_:
+|         `=>` _expression_
+
+**Semantics**
+
+A result statement stops the current functional
+block execution and makes it to result in a value
+that must be of the same type that the functional.
+
+If the current functional block does not have a
+explicit declared type it must be inferred using
+the first result statement of a functional block.
+
+Example
+
+```Meg
+f(x: i32) { \\ does not have a type
+   if cond {
+      => 30 \\ type will be i32
+   }
+   => 1.5 \\ error: type must be i32 not f32
+}
+```
+
+### If Statement
+
+**Syntax**
+
+| _if-statement_:
+|         `if` _conditional_ _conditional-body_
+
+| _conditional_:
+|         _expression_
+|         _init-statement_ `,` _expression_
+
+| _conditional-body_:
+|         `{` _statement-list_ `}` _else_~opt~
+
+| _else_:
+|         `else` `{` _statement-list_ `}`
+
+**Semantics**
+
+An if statement receives a conditional and must
+have a conditional body.
+
+A conditional receives an expression that must
+have a type of boolean category, it results in
+true according to that expression.
+
+An conditional expression may be preceeded by a
+certain set of statements separated by `,` that
+are initialisers. Such statement must be executed
+before the conditional expression in its own
+scope.
+
+If the conditional resulted in true, the first
+statement block of the conditional body will
+be executed; otherwise, the else block, if any,
+will be executed.
+
+### For Statement
+
+**Syntax**
+
+| _for-statement_:
+|         `for` _for-header_~opt~ _conditional-body_
+
+| _for-header_:
+|         _conditional_ _post-statement_~opt~
+
+| _post-statement_:
+|         `,` _statement_
+
+**Semantics**
+
+A for statement executes a block while the
+specified conditional results in true. The
+conditional will be executed before every loop
+round, but its initialiser only before the first
+conditional test.
+
+The post statement is executed after every loop
+round, it may be any statement.
+
+While the conditional is true, the first block of
+the conditional block is executed; when it is
+false the, the else block is executed.
+
+When the else block is executed, it can restart
+the loop with a continue statement.
+
+When the for header is completed omitted, the
+first conditional blocks is always executed.
+
+### Labeled Statement
+
+**Syntax**
+
+| _labeled-statement_:
+|         identifier `;` _statement_
+
+**Semantics**
+
+A labeled statements declares a statement with an
+identifier visible in the statement block. It is
+not a declaration and lives only in the label
+tables of the scope.
+
+### Break Statement
+
+**Syntax**
+
+| _break-statement_:
+|         `break`
+|         `break` _identifier_
+
+**Semantics**
+
+It stops the execution of the innermost for or
+case statement.
+
+A `break` is followed by an identifier is a break
+with label. It breaks the enclosing for or case
+statement that have the label specified by the
+identifier.
+
+### Continue Statement
+
+**Syntax**
+
+| _continue-statement_:
+|         `continue`
+|         `continue` _identifier_
+
+**Semantics**
+
+It ends the round of the innermost enclosing for
+or case statement.
+
+`continue` followed by an identifier is a
+continue with label statement. It ends the round
+of the enclosing for or case statement that have
+the label specified by the identifier.
+
+### Defer Statement
+
+**Syntax**
+
+| _defer-statement_:
+|         `defer` _statement_
+|         `defer` `{` _statement-list_ `}`
+
+**Semantics**
+
+A defer statement receives a statement ot block
+that is executed at the end of the execution of
+its enclosing block (that is, immediatally after
+a result, break, continue or, maybe, goto
+statement and the end of the block itself).
+
+A goto statement that do not jumps out of its
+enclosing block will not execute a defered
+statement or block.
+
+### Goto Statement
+
+**Syntax**
+
+| _goto-statement_:
+|         `goto` _identifier_
+
+**Semantics**
+
+A goto statement jumps executes a statement
+marked with the label specified by the identifier
+after `goto`. The label must have its identifier
+visible in the label table.
+
+### Assignment Statement
+
+**Syntax**
+
+| _assignment-statement_:
+|         _expression_ `=` _expression_
+|         _expression_ _op_`=` _expression_
+
+where op is one of
+
+| `+ - * / % & | ^ << >>`
+
+**Semantics**
+
+The left operand must be an addressable
+expression. For the first alternative, both
+operands must have the same type.
+
+The behaviour of `E1 = E2` is the result of `E2`
+being assigned to the object designated by `E1`.
+
+The behaviour of `E1 `_op_`= E2` is equivalent to
+`E1 = E1 `_op_` E2`.
+
+### Postifix Statements
+
+**Syntax**
+
+| _postfix-statement_:
+|         _expression_ `!`
+|         _expression_ `++`
+|         _expression_ `--`
+
+**Semantics**
+
+The behaviour and type constriants of
+
+- `E!` is equivalent to `E = !E`;
+- `E++` is equivalent to `E = E + 1`; and
+- `E--` is equivalent to `E = E - 1`.
+
+### Declaration Statement
+
+**Syntax**
+
+| _declaration-statement_:
+|         _object-declaration_
+
+**Semantics**
+
+The object in the statement must be declared in
+its enclosing block scope.
+
+Although this object is visible in all the scope,
+the object will only have valid value after the
+first assigment. The object initialiser, if any,
+is equivalent to an assigment executed whenever
+this statement is.
+
+Example
+
+func() {
+   y := x \\ error: x is uninitialised
+
+   x = 20 \\ x initialised
+   y = x \\ ok, y is 20
+
+   x: i32 = 10 \\ x is 10
+   y = 10 \\ y is 10
+}
+
+### Expression Statement
+
+**Syntax**
+
+| _expression-statement_:
+|         _expression_~opt~
+
+**Semantics**
+
+When this statement is executed, its expression,
+if any, is evaluated and the result discarded.
