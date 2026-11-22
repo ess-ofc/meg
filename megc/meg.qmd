@@ -1,6 +1,13 @@
+<!--
+SPDX-License-Identifier: GPL-3.0-only
+Copyright (c) 2026 Elizeu S. Souza
+-->
 ---
 title: "The Meg Programming Language Specification"
 author: "Elizeu S. Souza"
+copyright:
+  holder: "Elizeu S. Souza"
+  year: 2008
 format:
   pdf:
     pdf-engine: xelatex
@@ -8,7 +15,7 @@ format:
     fontsize: 12pt
 ---
 
-Last modification: 19.11.2026
+Last modification: 21.11.2026
 
 # Lexical Elements
 
@@ -84,7 +91,7 @@ remains reserved.
 | _octal-digit_: one of
 |         `0 1 2 3 4 5 6 7`
 
-| _hexadeciml-digit: one of
+| _hexadeciml-digit_: one of
 |         `0 1 2 3 4 5 6 7 8 9`
 |         `a b c d e f`
 
@@ -660,17 +667,6 @@ protected/read-only memory regions, for safety.
 **Syntax**
 
 | _expression_:
-|         _primary-expression_
-|         _prefix-expression_
-|         _postfix-expression_
-|         _multiplicative-expression_
-|         _additive-expression_
-|         _additive-expression_
-|         _shift-expression_
-|         _relational-expression_
-|         _equality-expression_
-|         _logical-and-expression_
-|         _logical-or-expression_
 |         _key-value-expression_
 
 | _expression-list_:
@@ -974,3 +970,246 @@ expression, such declaration may not be an unit.
 where _op_ is one of
 
 | `! + - & *`
+
+**Semantics**
+
+For `!`, the operand type must be of category
+integer, unsigned integer or boolean. In the
+expression `!E`, the result of the maximum
+representable value in the type minus `E` or, if
+the oerand type is of boolean category, the
+result is `true` if the operand is `false` or
+`false` otherwise.
+
+For `+` and `-`, the operand type must be of
+category integer or floating. In the expression
+`+E`, the result is always `E`; in `-E`, the
+result is equivalent to zero minus `E`.
+
+For `&`, the operand type must be of any category
+except of functional, pointer, unit and type and
+the operand must be an addressable expression
+(that is, an identifier, dot, pointer indirection
+or array subscripting expression). In `&E`, the
+result is the memory address of the object
+designated by `E`.
+
+For `*`, the operand type must be of pointer
+category. The result `*E` is the designation of
+the object pointed by `E`.
+
+### Multiplicative Expressions
+
+**Syntax**
+
+| _multiplicative-expression_:
+|         _prefix-expression_
+|         _multiplative-expresssion_ _op_ _prefix-expression_
+
+where _op_ is one of:
+
+| `* / %`
+
+**Semantics**
+
+The operands type must be of integer, unsigned
+integer or, for `*` and `/` as _op_, floating.
+
+The result of `E1 * E2` is the product of the two
+operands.
+
+The result of `E1 / E2` is the quotient of `E1`
+divided by `E2`. When _op_ is `%`, the result is
+the remainder of the same divison. In both cases,
+the result is always zero if one or both operands
+are zero, the compiler must provded an option
+checks if `E2` is zero before dividing.
+
+### Additive Expressions
+
+**Syntax**
+
+| _additivie-expression_:
+|         _multiplicative-expression_
+|         _additive-expression_ _op_ _mutliplicative-expression_
+
+where _op_ is one of
+
+| `+ -`
+
+**Semantics**
+
+Both operands type must be of integer, unsigned
+integer or floating category.
+
+The result of `E1 + E2` is the sum of both
+operands.
+
+The result of `E1 - E2` is `E1` minus `E2`.
+
+### Shift Expressions
+
+**Syntax**
+
+| _shift-expression_:
+|         _additive-expression_
+|         _shift-expression_ _op_ _additive-expression_
+
+where _op_ is one of
+
+| `<< >>`
+
+**Semantics**
+
+The left operand type must be of integer,
+unsigned integer or boolean category and the
+second operand type must be of unsigned integer
+category.
+
+The result of `E1 << E2` is `E1` left-shifted in
+`E2` bits.
+
+The result of `E1 >> E2` is `E1` right-shifted in
+`E2` bits.
+
+### Bitwise Expressions
+
+**Syntax**
+
+| _bitwise-expression_:
+|         _shift-expression_
+|         _bitwise-expression_ _op_ _shift-expression_
+
+where _op_ is one of
+
+| `& | ^`
+
+**Semantics**
+
+Both operands type must be of integer or unsigned
+integer category.
+
+The result of `E1 & E2` will have each bit set if
+the corresponding bit in both operands is set.
+
+The result of `E1 | E2` will have each bit set if
+the corresponding bit in one or both the operands
+is set.
+
+The result of `E1 ^ E2` will have each bit set if
+and only if the corresponding bit in on of the
+operands is set.
+
+### Relational Expressions
+
+**Syntax**
+
+| _relational-expression_:
+|         _shift-expression_
+|         _shift-expression_ _op_ _shift-expression_
+
+where _op_ is one of
+
+| `> < >= =<`
+
+**Semantics**
+
+Both operands type must be of integer, unsigned
+integer or floating category.
+
+The result of `E1 > E2` (greater than), `E1 < E2`
+(less than), `E1 >= E2` (greater or equal-to) and
+`E1 >= E2` (less or equal-to) is the same as in
+the mathematical notation and results in `true`
+if the relation is true or `false` otherwise.
+
+### Equality Expressions
+
+**Syntax**
+
+| _equality-expression_:
+|         _relational-expression_
+|         _relational-expression_ _op_ _relational-expression_
+
+where _op_ is one of
+
+| `== !=`
+
+**Semantics**
+
+Both operands type may be of any category, except
+structural and array category.
+
+The result of `E1 == E2` is `true` if both
+operands are equal; `false` otherwise.
+
+The result of `E1 != E2` is `true` if both
+operands are not equal; `false` otherwise.
+
+### Logical AND Expression
+
+**Syntax**
+
+| _and-expression_:
+|         _equality-expression_
+|         _equality-expression_ `and` _equality-expression_
+
+**Semantics**
+
+The operands type must be of category boolean.
+
+This expression results in `true` if both
+operands resulted in `true`; false otherwise.
+
+The second operand is never evaluated if the
+first operand resulted in `false`.
+
+### Logical OR Expression
+
+**Syntax**
+
+| _or-expression_:
+|         _and-expression_
+|         _and-expression_ `or` _and-expression_
+
+**Semantics**
+
+The operands type must be of category boolean.
+
+This expression results in `true` if one or both
+operands resulted in `true`; false otherwise.
+
+The second operand is never evaluated if the
+first operand resulted in `true`.
+
+### Key-value Expression
+
+**Syntax**
+
+| _key-value-expression_:
+|         _logical-or-expression_
+|         _identifier_ `=` _logical-or-expression_
+|         _primary-expression_ `=` _logical-or-expression_
+
+**Semantics**
+
+Key-value expressions are used in articulation
+of arrays or structures. It designates an array
+index or structure field and assigns a value to
+it. A key-value expression has two forms of
+designation: index and field.
+
+A key-value with index designation receives a
+primary expression that designates an index of
+the resulting array, which must be of a type of
+unsigned integer category.
+
+A key-value with field designation receives an
+identifier that designates any field of the
+resulting structure.
+
+This expression always results in the given
+value. The value must have the same type that
+the corresponding key (that is, the same type
+that the designated field or the same type of the
+resulting array).
