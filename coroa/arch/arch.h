@@ -11,6 +11,10 @@
 
 #define MAXFDTSZ 1'048'576
 
+#ifndef INITSER
+#	define INITSER nil
+#endif
+
 typedef struct fdt_hdr fdt_hdr;
 struct fdt_hdr {
 	u32 mag;
@@ -47,9 +51,26 @@ struct fdt_tok {
 	};
 };
 
+fdt_tok *fdt_skip(fdt_tok *t);
 fdt_tok *fdt_next(fdt_tok *t);
-fdt_tok *fdt_struc(fdt_hdr *h);
-str fdt_str(fdt_hdr *h, u32 off);
-fdt_tok *fdt_subtok(fdt_hdr *h, fdt_tok *pa, str nm);
-fdt_tok *fdt_gettok(fdt_hdr *h, str nm);
-err fdt_check(fdt_hdr *h);
+fdt_tok *fdt_struc();
+str fdt_str(u32 off);
+fdt_tok *
+fdt_subtok(fdt_tok *pa, str nm);
+fdt_tok *fdt_gettok(str nm);
+u64 fdt_readnum(u32 *c, size n);
+[[nodiscard]]
+i32 fdt_regval(
+   fdt_tok *t,
+   size ac,
+   size sc,
+   size idx,
+   u64 *bs,
+   u64 *sz
+);
+u32 fdt_numval(fdt_tok *);
+str fdt_name(fdt_tok *t);
+bool fdt_match(fdt_tok *t, str compat);
+fdt_tokk fdt_k(fdt_tok *t);
+[[nodiscard]]
+i32 fdt_set(fdt_hdr *fdt);

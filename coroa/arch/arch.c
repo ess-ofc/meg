@@ -7,65 +7,182 @@
 
 #include "arch.h"
 
-#define swap(i) __builtin_bswap32(i)
-#define swapl(i) __builtin_bswap64(i)
-
-// Provisory.
-#define UART0 ((volatile char *) 0x9000000)
-
-static volatile char *serial0;
+static volatile char *serial = INITSER;
 
 void
 arch_handle(u64 num, u64 esr) {
 	panic(
-		"exception: %il,"
-		" esr_el1 = %xl",
-		num,
-		esr
+	   "exception: %il,"
+	   " esr_el1 = %xl",
+	   num,
+	   esr
 	);
 }
 
 void
 arch_putc(char c) {
-	if(serial0 == nil)
-		return;
-
 	if(c == '\n')
-		*serial0 = '\r';
-	*serial0 = c;
+		*serial = '\r';
+	*serial = c;
+}
+
+void
+arch_backtrace() {
+	void **fp =
+	   __builtin_frame_address(0);
+	cont("--Backtrace--");
+	for(;;) {
+		cont(
+		   "%xl, ret = %xl",
+		   fp[0],
+		   fp[1]
+		);
+		fp = fp[0];
+		if(fp == nil) {
+			cont("--end--");
+			break;
+		}
+	}
 }
 
 static void
-init_serial(fdt_hdr *fdt) {
-	fdt_tok *t, *ser;
-	u32 *p;
+clearbss() {
+	extern u08 __bss[], __bss_end[];
+	memset(__bss, 0, __bss_end - __bss);
+}
 
-	t = fdt_gettok(fdt, "/aliases/serial0");
-	if(t == nil)
+static void
+initser(u64 adr, u64) {
+	if(serial == nil)
+		serial = (void *) adr;
+}
+
+static void
+getcells(
+   fdt_tok *t,
+   str nm,
+   size *ac,
+   size *sc
+) {
+	if(streq(nm, "#address-cells")) {
+		*ac = fdt_numval(t);
+		return;
+	}
+	if(streq(nm, "#size-cells")) {
+		*sc = fdt_numval(t);
+		return;
+	}
+}
+
+static void
+essential(
+   fdt_tok *t,
+   size ac,
+   size sc
+) {
+	fdt_tok *st;
+	str dev;
+
+	ASSERT(
+	   fdt_k(t) == FDT_BEGNODE,
+	   "not a node"
+	);
+
+	st = fdt_subtok(t, "device_type");
+	if(st == nil)
 		return;
 
-	ser = fdt_gettok(fdt, t->prop.val);
-	if(ser == nil)
+	dev = st->prop.val;
+	if(streq(dev, "memory")) {
+		size ad, sz;
+
+		if(fdt_regval(
+			  t, ac, sc, 0, &ad, &sz
+		   )) {
+			return;
+		}
+
+		/* Init memblock here. */
 		return;
+	}
 
-	t = fdt_subtok(fdt, ser, "reg");
-	p = (u32 *) t->prop.val;
-	serial0 = (void *) (u64) swap(p[1]);
+	/* TODO: if streq(dev, "cpu") */
+	return;
+}
 
-	debug("serial = %xl", serial0);
+static i32
+analynod(
+   fdt_hdr *h,
+   fdt_tok *t,
+   size ac,
+   size sc
+) {
+	fdt_tok *ty;
+
+	if(t == nil) {
+		t = fdt_struc();
+		ac = 2, sc = 1;
+	}
+
+	ASSERT(
+	   fdt_k(t) == FDT_BEGNODE,
+	   "not a node"
+	);
+
+	ty = t;
+	while((ty = fdt_next(ty))) {
+		switch(fdt_k(ty)) {
+		case FDT_BEGNODE:
+			analynod(h, ty, ac, sc);
+			fdt_skip(t);
+			break;
+		case FDT_PROP:
+			str nm = fdt_name(ty);
+			if(*nm == '#') {
+				getcells(
+				   ty, nm, &ac, &sc
+				);
+				break;
+			}
+			if(streq(
+				  nm, "device_type"
+			   )) {
+				essential(t, ac, sc);
+				break;
+			}
+		case FDT_NOP:
+			break;
+		case FDT_ENDNODE:
+			return 0;
+		case FDT_END:
+			return 1;
+		}
+	}
+	return 0;
+}
+
+static void
+analysefdt(fdt_hdr *h) {
+	fdt_tok *t;
+
+	if(fdt_set(h))
+		panic("invalid fdt");
+
+	analynod(h, nil, 0, 0);
+
+	t = fdt_gettok("/aliases");
+	if(t != nil) {
+		size
+	}
 }
 
 [[noreturn]]
 void
 arch_init(void *fdt) {
-	/* First, pre analyse dtb. */
-	if(fdt_check(fdt).s)
-		goto bad;
+	clearbss();
+	analysefdt(fdt);
 
-	init_serial(fdt);
-	debug("arm64 initialising");
+	puts(COROA);  // very important
 
-bad:
-	for(;;)
-		continue;
+	for(;;) {}
 }

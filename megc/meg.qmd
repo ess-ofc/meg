@@ -15,13 +15,26 @@ format:
     fontsize: 12pt
 ---
 
-Last modification: 22.11.2026
+Last modification: 24.11.2026
 
 # Lexical Elements
 
+## Comments
+
+A back-slash is the beginning of comment that
+ends in the next back-slash, if any, otherwise
+the comment is incomplete.
+
+Two consecutive back-slashes is the beginning of
+a comment that ends immeditally before the next
+newline character or the end of the file.
+
+Everything after the beginning and before the end
+of a comment is ignored.
+
 ## Identifiers
 
-###### Syntax {-}
+**Syntax**
 
 | _identifier_:
 |         ID_Start
@@ -37,14 +50,14 @@ kind.
 The language have some reserved identifiers
 reserved as keywords, as follows
 
-|            |         |         |
-|------------|---------|---------|
-| `and`      | `defer` | `let`   |
-| `break`    | `else`  | `of`    |
-| `case`     | `fall`  | `or`    |
-| `const`    | `for`   | `use`   |
-| `continue` | `goto`  |         |
-| `def`      | `if`    |         |
+|         |        |           |
+|---------|--------|-----------|
+| `and`   | `else` | `of`      |
+| `break` | `fall` | `or`      |
+| `case`  | `for`  | `restate` |
+| `const` | `goto` | `use`     |
+| `def`   | `if`   |           |
+| `defer` | `let`  |           |
 
 Kewords can not be used as an identifier token,
 therefore can not be used to identify
@@ -139,8 +152,8 @@ equivalent to $1.5 \times 2^{3}$.
 **Syntax**
 
 | _rune_:
-|         ' _utf8-char_ '
-|         ' _scaped-char_ '
+|         `'` _utf8-char_ `'`
+|         `'` _scaped-char_ `'`
 
 | _uft8-char_:
 |         Any character encoded as UTF-8.
@@ -165,8 +178,8 @@ result is an UTF-32 encoded character of the
 UTF-8 character, scape or hexadecimal scape that
 is enclosed in quotes, as in 'r'.
 
-A _simple scape sequence_ are character codes
-that results in a UTF-32 chracter. The character
+Simple scape sequencse are character codes that
+results in a UTF-32 chracter. The character
 that each one returns is
 
 - `\'` results in a U+0027 character (`'`);
@@ -236,7 +249,7 @@ From the list, the punctuators are
 
 serves strictly as punctuators, which serves only
 to separate and structure the language grammar
-and have no semantic effect. The others are
+and may have no semantic effect. The others are
 operators, which may indicate an expression or
 statement.
 
@@ -252,7 +265,7 @@ token is
 - a _string_; or
 - a `break` or `continue` keyword.
 
-# Language
+# Syntax
 
 The Meg Programming Language sintax consists of
 four basic elements: declaration, expression,
@@ -274,9 +287,11 @@ expressions and statements respectivelly.
 **Semantics**
 
 Results in a type, which is used to explicit
-declare a type of a declaration.
+declare the type of a declaration.
 
 ### Type Categories
+
+> Wioo be moved to another section.
 
 A type category is a set of properties that a
 type have. All the properties that the language

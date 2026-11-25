@@ -1,18 +1,22 @@
 include ../Make.conf
 
-OUT := $(BUILD)/coroa
-IMG := $(BUILD)/Coroa
+OUT := Coroa
 
-FLAGS =\
+CFLAGS =\
+	--target=aarch64-none-elf\
 	-fno-omit-frame-pointer\
 	-mgeneral-regs-only\
 	-ffreestanding\
 	-fno-builtin\
-	-nostdlib\
-	-T linker.ld\
-	-static\
 	-std=c23\
+	-Wall\
+	-Wextra\
 	-ggdb
+
+LFLAGS :=\
+	-T linker.ld\
+	-nostdlib\
+	-static
 
 FILES :=\
 	lib.c\
@@ -20,15 +24,33 @@ FILES :=\
 	arch/arch.c\
 	arch/fdt.c
 
-$(IMG):
-	@mkdir -p $(BUILD)
-	@$(CC) $(FLAGS) $(FILES) -o $(OUT)
-	@objcopy -O binary $(OUT) $(IMG)
+HFILES :=\
+	k.h\
+	Coroa.txt\
+	arch/arch.h
 
-run: $(IMG)
+OFILES := $(addsuffix .o,$(basename $(FILES)))
+
+$(OUT): $(OFILES)
+	@mkdir -p $(BUILD)
+	@$(LD) $(LFLAGS) $(OFILES) -o $(OUT)
+	@objcopy -O binary $(OUT)
+
+$(OFILES): $(HFILES)
+
+%.o: %.c
+	@$(CC) $(CFLAGS) -c $< -o $@
+
+%.o: %.S
+	@$(CC) -c $< -o $@
+
+run: $(OUT)
 	@qemu-system-aarch64\
-		-kernel $(IMG)\
+		-kernel $(OUT)\
 		-cpu cortex-a57\
 		-nographic\
 		-M virt\
 		-m 256M
+
+clean:
+	@rm -f $(OUT) $(OFILES)

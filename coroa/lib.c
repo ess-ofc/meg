@@ -15,7 +15,7 @@ putc(char c) {
 void
 puts(str s) {
 	if(s == nil)
-		s = "nil str";
+		s = "[nil str]";
 	while(*s) {
 		arch_putc(*s++);
 	}
@@ -109,9 +109,12 @@ vprintf(str fmt, valist va) {
 				x -= v;
 				x /= 16;
 				if(n < BMAX) {
-					buf[n++] = v < 10 ?
-						v + '0' :
-						v + 'a';
+					if(v < 10)
+						buf[n++] =
+						   v + '0';
+					else
+						buf[n++] =
+						   v - 10 + 'a';
 				}
 			}
 			goto flush;
@@ -179,7 +182,7 @@ streq(str s, str o) {
 		s++, o++;
 	}
 
-	if(*s)
+	if(*s || *o)
 		return false;
 	return true;
 }
@@ -225,6 +228,7 @@ void
 vpanic(str s, valist va) {
 	diag("Panic!", s, va);
 	VADNIT(va);
+	arch_backtrace();
 	for(;;) {
 		arch_halt();
 	}
@@ -245,6 +249,15 @@ assert(bool cond, str s, ...) {
 		return;
 	VAINIT(va, s);
 	vpanic(s, va);
+}
+
+void
+info(str s, ...) {
+	valist va;
+
+	VAINIT(va, s);
+	diag("info", s, va);
+	VADNIT(va);
 }
 
 void

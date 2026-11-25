@@ -10,7 +10,7 @@ AlignConsecutiveShortCaseStatements:
 AlignConsecutiveTableGenCondOperatorColons: None
 AlignConsecutiveTableGenDefinitionColons: None
 AlignOperands: false
-AllowAllArgumentsOnNextLine: false
+AllowAllArgumentsOnNextLine: true
 AllowAllParametersOfDeclarationOnNextLine: false
 AllowBreakBeforeNoexceptSpecifier: Never
 AllowShortBlocksOnASingleLine: Empty
@@ -67,7 +67,7 @@ BreakFunctionDefinitionParameters: false
 BreakInheritanceList: AfterColon
 BreakStringLiterals: false
 BreakTemplateDeclarations: true
-ColumnLimit: 0
+ColumnLimit: 40
 CompactNamespaces: false
 ContinuationIndentWidth: 3
 ConstructorInitializerIndentWidth: 3
@@ -78,14 +78,14 @@ IncludeBlocks: Preserve
 IndentAccessModifiers: false
 IndentCaseBlocks: false
 IndentExternBlock: Indent
-IndentGotoLabels: false
+IndentGotoLabels: true
 IndentPPDirectives: AfterHash
 InsertBraces: false
 InsertTrailingCommas: None
-IndentWidth: 3
+IndentWidth: 4
 LambdaBodyIndentation: Signature
 NamespaceIndentation: All
-PPIndentWidth: 3
+PPIndentWidth: 4
 PackConstructorInitializers: Never
 PointerAlignment: Right
 ReferenceAlignment: Right
@@ -109,5 +109,5 @@ SpacesBeforeTrailingComments: 2
 SpacesInAngles: false
 SpacesInParens: Never
 SpacesInSquareBrackets: false
-TabWidth: 3
+TabWidth: 4
 UseTab: Always

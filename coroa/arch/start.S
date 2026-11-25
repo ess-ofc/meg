@@ -29,13 +29,14 @@ _stack_bottom:
 .global _start
 .type _start, @function
 _start:
-    adrp x1, _stack_bottom
-    add  x1, x1, :lo12:_stack_bottom
-    mov  sp, x1
+    adrp x10, _stack_bottom
+    add  x10, x10, :lo12:_stack_bottom
+    mov  sp, x10
+    mov  fp, xzr
 
-    adrp x1, vectors
-    add  x1, x1, :lo12:vectors
-    msr  vbar_el1, x1
+    adrp x10, vectors
+    add  x10, x10, :lo12:vectors
+    msr  vbar_el1, x10
     msr  daif, xzr
     
     b    arch_init // It cannot return.

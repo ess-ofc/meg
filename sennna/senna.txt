@@ -1,0 +1,32 @@
+The Senna Virtual Machine
+_________________________
+
+Last modification: 24.11.2026
+
+I am writing this because I am frustrated with
+the devive tree while developing the Coroa kernel
+for Aarch64 and decided to create my own virtual
+machine and architeture to develop the kernel.
+
+The Basics
+__________
+
+Each instruction must be fast to decode and
+execute. Every instruction has 32-bit of size.
+
+The boot system must be simple and only load the
+bootloader from somewhere. I have to decide if
+this system is built-in or the user can change to
+support others bootloaders.
+
+A virtual address have three levels of page table
+and the virtual MMU must support pages from 64 B
+to 64 KB of size.
+
+Must exist the supervisor space and the user
+space, each one with its own page table. The CPU
+must have an easy system of scheduling and timing
+that devolves the control of CPU to the
+supervisor.
+
+[TODO] How the bootloader will enumerate devices?

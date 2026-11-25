@@ -16,8 +16,9 @@ typedef unsigned short u16;
 typedef unsigned int u32;
 typedef unsigned long long u64;
 typedef u32 rune;
-typedef u64 size;	 // TODO: u32 for 32-bit targets.
-typedef char *str;
+typedef u64 size;  // TODO: u32 for
+				   // 32-bit targets.
+typedef const char *str;
 typedef struct err err;
 typedef typeof(nullptr) null;
 
@@ -46,6 +47,15 @@ constexpr null nil = nullptr;
 		"assert(" #cond ") failed. \"" msg "\"", \
 		__LINE__ __VA_OPT__(,) __VA_ARGS__ \
 	)
+
+/* The most important here. */
+constexpr char COROA[] = {
+#embed "Coroa.txt"
+   ,
+   '\n',
+   '\n',
+   '\0'
+};
 
 enum {
 	PNONE = 0,
@@ -79,6 +89,7 @@ void panic(str s, ...);
 [[noreturn]]
 void vpanic(str s, valist va);
 void assert(bool cond, str s, ...);
+void info(str s, ...);
 void error(str s, ...);
 void debug(str s, ...);
 void warn(str s, ...);
@@ -88,6 +99,7 @@ void cont(str s, ...);
 
 void arch_putc(char c);
 void arch_halt();
+void arch_backtrace();
 
 /* main.c */
 
